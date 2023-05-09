@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import Button from '../components/Button.svelte';
 
 	type OAuthSuccess = {
 		type: 'ok';
@@ -41,16 +40,33 @@
 	}
 
 	$: search_params = $page.url.searchParams;
-	$: state = oauth_state(search_params);
+	$: result = oauth_state(search_params);
 	const copy_params_to_clipboard = () => {
 		navigator.clipboard.writeText(JSON.stringify(Object.fromEntries(search_params.entries())));
 	};
 </script>
 
-{#if state.type == 'ok'}
-	<Button on_click={(_) => copy_params_to_clipboard()}>copy</Button>
-{:else if state.type == 'err'}
-	TODO: display error
+{#if result.type == 'ok'}
+	<h1>Success</h1>
+	<p>Copy using the button below, and paste into the app that you're authorizing.</p>
+	<p>You can then close this page.</p>
+	<button on:click={copy_params_to_clipboard}>Copy authorization to clipboard</button>
+{:else if result.type == 'err'}
+	<h1>Authorization error</h1>
+	<p>error: {result.error}</p>
+	{#each [['description', result.description], ['uri', result.uri], ['state', result.state]] as [name, maybe_item]}
+		{#if maybe_item != undefined}
+			<p>{name}: {maybe_item}</p>
+		{/if}
+	{/each}
 {:else}
-	TODO: landing page
+	<h1>OAuth Shim</h1>
+	<p>A simple redirect URL for OAuth applications.</p>
+	<p>
+		When used as a redirect, this page will present a button which copies the OAuth <code>code</code
+		>
+		and <code> state </code> (if present) to the user's clipboard.
+	</p>
+	<p>These will be copied as JSON, which the user can then paste into your application.</p>
+	<p>On error, the params in the OAuth spec are printed out, if present.</p>
 {/if}
