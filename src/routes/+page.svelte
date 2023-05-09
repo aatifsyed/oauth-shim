@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import Button from '../components/Button.svelte';
 
 	type OAuthSuccess = {
 		type: 'ok';
@@ -47,7 +48,7 @@
 </script>
 
 {#if state.type == 'ok'}
-	<button on:click={copy_params_to_clipboard}>copy</button>
+	<Button on_click={(_) => copy_params_to_clipboard()}>copy</Button>
 {:else if state.type == 'err'}
 	TODO: display error
 {:else}
