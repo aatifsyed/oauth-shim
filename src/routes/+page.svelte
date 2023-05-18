@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 
 	type OAuthSuccess = {
 		type: 'ok';
@@ -39,10 +40,21 @@
 		return { type: 'idk' };
 	}
 
-	$: search_params = $page.url.searchParams;
-	$: result = oauth_state(search_params);
-	const copy_params_to_clipboard = () => {
-		navigator.clipboard.writeText(JSON.stringify(Object.fromEntries(search_params.entries())));
+	function to_json(result: OAuthSuccess | OAuthError | Unrecognized): string {
+		return JSON.stringify(result, (k, v) => {
+			// skip discriminator
+			return k == 'type' ? undefined : v;
+		});
+	}
+
+	onMount(() => {
+		result = oauth_state($page.url.searchParams);
+	});
+
+	let result: OAuthSuccess | OAuthError | Unrecognized = { type: 'idk' };
+
+	const oauth_to_clipboard = () => {
+		navigator.clipboard.writeText(to_json(result));
 	};
 </script>
 
@@ -50,7 +62,7 @@
 	<h1>Success</h1>
 	<p>Copy using the button below, and paste into the app that you're authorizing.</p>
 	<p>You can then close this page.</p>
-	<button on:click={copy_params_to_clipboard}>Copy authorization to clipboard</button>
+	<button on:click={oauth_to_clipboard}>Copy authorization to clipboard</button>
 {:else if result.type == 'err'}
 	<h1>Authorization error</h1>
 	<p>error: {result.error}</p>
